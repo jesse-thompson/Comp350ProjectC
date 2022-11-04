@@ -8,6 +8,6 @@ ld86 -d -o kernel kernelc.o kernelasm.o
 
 gcc -o loadFile loadFile.c
 
-./loadfile kernel
-./loadfile message.txt
+./loadFile kernel
+./loadFile message.txt
 

@@ -8,13 +8,11 @@ void printChar(char);
 void printString(char*);
 void readString(char*);
 void readSector(char*, int);
-void readFile(char*, int, int);
+void readFile(char*, char*, int*);
 void handleInterrupt21(int,int,int,int);
 
 void main()
 {
-
-
     // Setting up for readString
     char line[80];
 
@@ -23,22 +21,22 @@ void main()
 
     // Setting up readFile
     char fileBuffer [13312];
+    char* fileName = "messag";
     int sectorsRead;
+    readFile(fileName, fileBuffer, &sectorsRead); // Just a test of the function
+    printString("Attempting to print fileBuffer: \n\r");
+    printString(fileBuffer);
 
     // Creating interrupt21
-    makeInterrupt21();
+    makeInterrupt21(); // My project B did not give me this error for makeInterrupt21()
 
     //Project B
     // Calling readString
-    interrupt(0x21, 0, "Enter in some text: \0", 0, 0);
+    //interrupt(0x21, 0, "Enter in some text: \0", 0, 0);
     // Calling printString
-    interrupt(0x21, 1, line, 0, 0);
+    //interrupt(0x21, 1, line, 0, 0);
     // Calling readSector
-    interrupt(0x21, 2, sectorBuffer, 30, 0);
-
-    //Project C
-    // Calling readFile
-    //interrupt(0x21, 3, "messag", fileBuffer, &sectorsRead);
+    //interrupt(0x21, 2, sectorBuffer, 30, 0);
 
     while(1);
 }
@@ -95,38 +93,62 @@ void readSector(char* buffer, int sector)
     interrupt(0x13, 2*256+1, buffer, sector+1, 0x80);
 }
 
-void readFile(char* fileName, int buffer, int sectorsRead)
+// Class notes 11/3/22
+// TO find a file follow these steps:
+// 1. Read the directory using readSector(place to put it, what sector you want to read);
+// 2. Step through directory, one line at a time, and compare the lines to the file name
+
+void readFile(char* fileName, char* buffer, int sectorsRead)
 {
-    int fileEntry = 0;
-    int fileBuffer = 0;
-    int amountOfSectors = 0;
+    int i;
+    int numSectors; // This is the incorrect way to see the number of sectors read, this is temporary
+
+    int fileEntry;
     char directory[512];
 
-    directory = readSector("",2); // Directory is at sector 2, but readSector needs a value for buffer
+    readSector(directory,2); // Directory is at sector 2
+    numSectors = 0;
 
-    for (; fileEntry < 512; iter += 32)
+    // printing out the contents of directory, just to see what's currently in there
+    printString("Printing directory: \n\r\0");
+    for (i = 0; i < 512; i++)
     {
+        printChar(directory[i]);
+    }
+    printString("\n\r\0");
+
+    for (fileEntry = 0; fileEntry < 512; fileEntry += 32)
+    {
+
         // fileName has to match identically with the first 6 entries of file stored in the directory
-        if (fileName[fileEntry] == directory[fileEntry] and fileName[fileEntry + 1] == directory[fileEntry + 1] and fileName[fileEntry + 2] == directory[fileEntry + 2] and
-        fileName[fileEntry + 3] == directory[fileEntry + 3] and fileName[fileEntry + 4] == directory[fileEntry + 4] and fileName[fileEntry + 5] == directory[fileEntry + 5])
+        // This approach will not work for anything less than 6 characters
+        // Better approach is to replace this if statement with another for loop <-- I'll deal with this later
+        if (fileName[fileEntry] == directory[fileEntry] && fileName[fileEntry + 1] == directory[fileEntry + 1] && fileName[fileEntry + 2] == directory[fileEntry + 2] &&
+        fileName[fileEntry + 3] == directory[fileEntry + 3] && fileName[fileEntry + 4] == directory[fileEntry + 4] && fileName[fileEntry + 5] == directory[fileEntry + 5])
         {
-            for (int i = 0; i < 28; i++)
+
+            printString("File found.\n\r\0");
+
+            for (i = 6; i < 28; i++)
             // 28 is the maximum amount of sectors a file can take up
             {
-                if (readSector("", fileEntry + 6) == 0)
+                if (&directory[fileEntry] == 0)
                 {
-                    break; // I actually need to return a few things here, but don't know how
+                    break;
                 }
                 else
                 {
-                    amountOfSectors++;
-                    fileBuffer += 512;
+                    readSector(buffer, directory[fileEntry]);
+                    buffer += 512;
+                    numSectors++;
+//                    *sectorsRead = *sectorsRead + 1;
                 }
             }
         }
     }
 
-
+    // if no match, *sectorsRead = 0;
+    // The above line means that we loops through the directory and found no matching file name
 
 }
 
