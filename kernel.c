@@ -100,48 +100,61 @@ void readSector(char* buffer, int sector)
 
 void readFile(char* fileName, char* buffer, int sectorsRead)
 {
-    int i;
-    int numSectors; // This is the incorrect way to see the number of sectors read, this is temporary
+    int printIndex; // Index used for printing out the characters of the directory
+    int correctCharIndex; // Index used for comparing how many characters in fileName match with directory[fileEntry]
+    int correctChars; // The number of matching characters when comparing fileName and directory[fileEntry]
+
+    int *fileSector; // This variable is used to check what sectors a file is located in
+    int sectorIndex; // Index used for reading what sectors a file is stored on
+
+    char *directoryChar;
 
     int fileEntry;
     char directory[512];
 
     readSector(directory,2); // Directory is at sector 2
-    numSectors = 0;
 
     // printing out the contents of directory, just to see what's currently in there
-    printString("Printing directory: \n\r\0");
-    for (i = 0; i < 512; i++)
+    printString("Printing directory: \n\r");
+    for (printIndex = 0; printIndex < 512; printIndex++)
     {
-        printChar(directory[i]);
+        *directoryChar = directory[printIndex];
+        printChar(*directoryChar);
     }
     printString("\n\r\0");
 
+
     for (fileEntry = 0; fileEntry < 512; fileEntry += 32)
     {
+        correctChars = 0;
 
         // fileName has to match identically with the first 6 entries of file stored in the directory
-        // This approach will not work for anything less than 6 characters
-        // Better approach is to replace this if statement with another for loop <-- I'll deal with this later
-        if (fileName[fileEntry] == directory[fileEntry] && fileName[fileEntry + 1] == directory[fileEntry + 1] && fileName[fileEntry + 2] == directory[fileEntry + 2] &&
-        fileName[fileEntry + 3] == directory[fileEntry + 3] && fileName[fileEntry + 4] == directory[fileEntry + 4] && fileName[fileEntry + 5] == directory[fileEntry + 5])
+        for (correctCharIndex = 0; correctCharIndex < 6; correctCharIndex++)
         {
-
-            printString("File found.\n\r\0");
-
-            for (i = 6; i < 28; i++)
-            // 28 is the maximum amount of sectors a file can take up
+            *directoryChar = directory[fileEntry + correctCharIndex];
+            if (fileName[fileEntry + correctCharIndex] == *directoryChar)
             {
-                if (&directory[fileEntry] == 0)
+                correctChars++;
+            }
+            if (correctChars == 6)
+            {
+                printString("File found.\n\r");
+
+                for (sectorIndex = 6; sectorIndex < 28; sectorIndex++)
+                    // 28 is the maximum amount of sectors a file can take up
                 {
-                    break;
-                }
-                else
-                {
-                    readSector(buffer, directory[fileEntry]);
-                    buffer += 512;
-                    numSectors++;
-//                    *sectorsRead = *sectorsRead + 1;
+                    *fileSector = directory[fileEntry + sectorIndex];
+                    if (*fileSector == 0x0)
+                    {
+                        printString("All sectors found. \n\r");
+                        break;
+                    }
+                    else
+                    {
+                        readSector(buffer, directory[fileEntry + sectorIndex]);
+                        buffer += 512;
+//                        *sectorsRead = *sectorsRead + 1; // Currently gives me an illegal indirection error
+                    }
                 }
             }
         }
