@@ -6,14 +6,9 @@ void handleInput(int, int, int, int);
 
 main()
 {
-    char userInput[80];
-    char fileInput[512];
 
-    makeInterrupt21();
-    interrupt(0x21,1,userInput,0,0);
-    interrupt(0x21,0,userInput,0,0);
-    interrupt(0x21,2,fileInput,30,0);
-    interrupt(0x21,0,fileInput,0,0);
+
+    syscall(3, buffer, 30)
 }
 
 void handleInput(int ax, int bx, int cx, int dx)
