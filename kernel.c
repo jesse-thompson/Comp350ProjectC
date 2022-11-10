@@ -161,7 +161,7 @@ void readFile(char* fileName, char* buffer, int sectorsRead)
     }
 
     // if no match, *sectorsRead = 0;
-    // The above line means that we loops through the directory and found no matching file name
+    // The above line means that we loop through the directory and found no matching file name
 
 }
 
