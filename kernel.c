@@ -1,96 +1,170 @@
-// Jesse Thompson
-// Team Awesome: Jesse Thompson, TJ Bourget, Sean Tammelleo, Craig Kimello
-// COMP 350 - 001
-// ProjectC
+// Craig Kimball 11/2/22
+// TJ
+// Jesse
+// Sean
+
 
 void printChar(char);
 void printString(char*);
 void readString(char*);
 void readSector(char*, int);
+void readFile(char*, char*, int*);
 void handleInterrupt21(int,int,int,int);
 
 void main()
 {
-    char userInput[80];
-    char fileInput[512];
+    // Setting up for readString
+    char line[80];
 
-    makeInterrupt21();
-    interrupt(0x21,1,userInput,0,0);
-    interrupt(0x21,0,userInput,0,0);
-    interrupt(0x21,2,fileInput,30,0);
-    interrupt(0x21,0,fileInput,0,0);
+    // Setting up readSector
+    char sectorBuffer[512];
 
-    while (1);
+    // Setting up readFile
+    char fileBuffer [13312];
+    char* fileName = "messag";
+    int sectorsRead;
+    readFile(fileName, fileBuffer, &sectorsRead); // Just a test of the function
+    printString("Attempting to print fileBuffer: \n\r");
+    printString(fileBuffer);
+
+    // Creating interrupt21
+    makeInterrupt21(); // My project B did not give me this error for makeInterrupt21()
+
+    //Project B
+    // Calling readString
+    //interrupt(0x21, 0, "Enter in some text: \0", 0, 0);
+    // Calling printString
+    //interrupt(0x21, 1, line, 0, 0);
+    // Calling readSector
+    //interrupt(0x21, 2, sectorBuffer, 30, 0);
+
+    while(1);
 }
 
-// Prints out the provided string to the console using interrupts
+void printChar(char c)
+{
+    interrupt(0x10, 0xe*256+c,0,0,0);
+}
+
 void printString(char* chars)
 {
-    int index = 0;
-    while(chars[index] != 0x0)
+    int increment = 0;
+    while(chars[increment] != 0x0)
     {
-        interrupt(0x10, 0xe * 256 + chars[index], 0, 0, 0);
-        index++;
+        interrupt(0x10, 0xe*256+chars[increment],0,0,0);
+        increment++;
     }
 }
 
-void readString(char* letter)
+void readString(char* chars)
 {
-    int index = 0;
-    //getting letter and printing to screen
-    letter[index] = interrupt(0x16, 0, 0, 0,0);
-    printChar(letter[index]);
+    int currIndex = 0;
+    chars[currIndex] = interrupt(0x16, 0,0,0,0);
+    printChar(chars[currIndex]);
 
-    //check if enter key is pressed and under string limit but not zero
-    while (letter[index] != 0xd  && 0 < index < 80)
+    while(chars[currIndex] != 0xd && currIndex < 80)
     {
-        char inputLetter = interrupt(0x16, 0, 0, 0, 0);
-        //if input is backspace
-        if (inputLetter == 0x8)
+        char input = interrupt(0x16, 0,0,0,0);
+        if(input == 0x8)
         {
-            if(index >= 0)
+            if(currIndex >= 0)
             {
-                index--;
+                currIndex--;
                 printChar(0x8);
                 printChar(' ');
                 printChar(0x8);
             }
         }
-        else{
-            index++;
-            letter[index] = inputLetter;
-            printChar(letter[index]);
+        else
+        {
+            currIndex ++;
+            chars[currIndex] = input;
+            printChar(input);
         }
     }
-    //once enter key pressed
-    letter[index+1] = 0xa;
-    letter[index+2] = 0x0;
     printChar(0xa);
-}
 
-void printChar(char c)
-{
-    interrupt(0x10, 0xe*256+c, 0, 0, 0);
+    chars[currIndex+1] = 0xa;
+    chars[currIndex+2] = 0x0;
 }
 
 void readSector(char* buffer, int sector)
 {
-    int ah = 2;             // tells BIOS to read sector
-    int al = 1;             // number of sectors to use
-    int ax = ah * 256 + al;
-
-    int ch = 0;             // track number
-    int cl = sector + 1;    // relative sector number
-    int cx = ch * 256 + cl;
-
-    int dh = 0;             // head number
-    int dl = 0x80;          // device number
-    int dx = dh * 256 + dl;
-
-    interrupt(0x13, ax, buffer, cx, dx);
+    interrupt(0x13, 2*256+1, buffer, sector+1, 0x80);
 }
 
-// Chooses the proper interrupt function call based on the value of 'ax'
+// Class notes 11/3/22
+// TO find a file follow these steps:
+// 1. Read the directory using readSector(place to put it, what sector you want to read);
+// 2. Step through directory, one line at a time, and compare the lines to the file name
+
+void readFile(char* fileName, char* buffer, int sectorsRead)
+{
+    int printIndex; // Index used for printing out the characters of the directory
+    int correctCharIndex; // Index used for comparing how many characters in fileName match with directory[fileEntry]
+    int correctChars; // The number of matching characters when comparing fileName and directory[fileEntry]
+
+    int *fileSector; // This variable is used to check what sectors a file is located in
+    int sectorIndex; // Index used for reading what sectors a file is stored on
+
+    char *directoryChar;
+
+    int fileEntry;
+    char directory[512];
+
+    readSector(directory,2); // Directory is at sector 2
+
+    // printing out the contents of directory, just to see what's currently in there
+    printString("Printing directory: \n\r");
+    for (printIndex = 0; printIndex < 512; printIndex++)
+    {
+        *directoryChar = directory[printIndex];
+        printChar(*directoryChar);
+    }
+    printString("\n\r\0");
+
+
+    for (fileEntry = 0; fileEntry < 512; fileEntry += 32)
+    {
+        correctChars = 0;
+
+        // fileName has to match identically with the first 6 entries of file stored in the directory
+        for (correctCharIndex = 0; correctCharIndex < 6; correctCharIndex++)
+        {
+            *directoryChar = directory[fileEntry + correctCharIndex];
+            if (fileName[fileEntry + correctCharIndex] == *directoryChar)
+            {
+                correctChars++;
+            }
+            if (correctChars == 6)
+            {
+                printString("File found.\n\r");
+
+                for (sectorIndex = 6; sectorIndex < 28; sectorIndex++)
+                    // 28 is the maximum amount of sectors a file can take up
+                {
+                    *fileSector = directory[fileEntry + sectorIndex];
+                    if (*fileSector == 0x0)
+                    {
+                        printString("All sectors found. \n\r");
+                        break;
+                    }
+                    else
+                    {
+                        readSector(buffer, directory[fileEntry + sectorIndex]);
+                        buffer += 512;
+//                        *sectorsRead = *sectorsRead + 1; // Currently gives me an illegal indirection error
+                    }
+                }
+            }
+        }
+    }
+
+    // if no match, *sectorsRead = 0;
+    // The above line means that we loops through the directory and found no matching file name
+
+}
+
 void handleInterrupt21(int ax, int bx, int cx, int dx)
 {
     switch(ax)
@@ -104,6 +178,8 @@ void handleInterrupt21(int ax, int bx, int cx, int dx)
         case 2:
             readSector(bx, cx);
             break;
+        case 3:
+            readFile(bx, cx, dx);
         default:
             printString("No interrupt function correlated with AX number");
 
