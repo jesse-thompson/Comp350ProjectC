@@ -5,5 +5,3 @@ ld86 -d -o shell shellc.o userlibasm.o
 gcc -o loadFile loadFile.c
 
 ./loadFile shell
-./loadFile message.txt
-

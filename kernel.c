@@ -30,6 +30,8 @@ void main()
     // Creating interrupt21
     makeInterrupt21(); // My project B did not give me this error for makeInterrupt21()
 
+    interrupt(0x21, "shell");
+
     //Project B
     // Calling readString
     //interrupt(0x21, 0, "Enter in some text: \0", 0, 0);
