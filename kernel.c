@@ -41,7 +41,7 @@ void main()
 //        printString("Error: File not found\n\r");
 //    }
 
-    handleInterrupt21(4, "testpr1", 0, 0);
+    handleInterrupt21(4, "tstpr1", 0, 0);
 
 
 
