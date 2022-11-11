@@ -1,5 +1,4 @@
 .idea
-*.md
 *.log
 *.o
 *.img
