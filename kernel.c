@@ -10,6 +10,7 @@ void readString(char*);
 void readSector(char*, int);
 void readFile(char*, char*, int*);
 void executeProgram(char* name);
+void terminate();
 void handleInterrupt21(int,int,int,int);
 
 void main()
@@ -41,7 +42,8 @@ void main()
 //        printString("Error: File not found\n\r");
 //    }
 
-    handleInterrupt21(4, "tstpr1", 0, 0);
+    //handleInterrupt21(4, "tstpr1", 0, 0);
+    handleInterrupt21(4, "tstpr2", 0, 0);
 
 
 
@@ -219,6 +221,26 @@ void executeProgram(char* name)
     launchProgram(0x2000);
 }
 
+void terminate()
+{
+    printChar('T');
+    printChar('e');
+    printChar('r');
+    printChar('m');
+    printChar('i');
+    printChar('n');
+    printChar('a');
+    printChar('t');
+    printChar('i');
+    printChar('n');
+    printChar('g');
+    printChar('.');
+    printChar('.');
+    printChar('.');
+    printChar('\r');
+    printChar('\n');
+}
+
 void handleInterrupt21(int ax, int bx, int cx, int dx)
 {
     switch(ax)
@@ -236,6 +258,8 @@ void handleInterrupt21(int ax, int bx, int cx, int dx)
             readFile(bx, cx, dx);
         case 4:
             executeProgram(bx);
+        case 5:
+            terminate();
         default:
             printString("No interrupt function correlated with AX number");
 
