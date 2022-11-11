@@ -9,6 +9,7 @@ void printString(char*);
 void readString(char*);
 void readSector(char*, int);
 void readFile(char*, char*, int*);
+void executeProgram(char* name);
 void handleInterrupt21(int,int,int,int);
 
 void main()
@@ -23,29 +24,26 @@ void main()
     char fileBuffer [13312];
     char* fileName = "messag";
     int sectorsRead;
-    readFile(fileName, fileBuffer, &sectorsRead); // Just a test of the function
-
-    if (sectorsRead > 0)
-    {
-        printString(fileBuffer);
-    }
-    else
-    {
-        printString("Error: File not found\n\r");
-    }
 
     // Creating interrupt21
-    makeInterrupt21(); // My project B did not give me this error for makeInterrupt21()
+    makeInterrupt21();
 
-    
+    //readFile(fileName, fileBuffer, &sectorsRead); // Just a test of the function
 
-    //Project B
-    // Calling readString
-    //interrupt(0x21, 0, "Enter in some text: \0", 0, 0);
-    // Calling printString
-    //interrupt(0x21, 1, line, 0, 0);
-    // Calling readSector
-    //interrupt(0x21, 2, sectorBuffer, 30, 0);
+    //handleInterrupt21(3, "messag", fileBuffer, &sectorsRead);
+
+//    if (sectorsRead > 0)
+//    {
+//        printString(fileBuffer);
+//    }
+//    else
+//    {
+//        printString("Error: File not found\n\r");
+//    }
+
+    handleInterrupt21(4, "testpr1", 0, 0);
+
+
 
     while(1);
 }
@@ -109,7 +107,7 @@ void readSector(char* buffer, int sector)
 
 void readFile(char* fileName, char* buffer, int* sectorsRead)
 {
-//    int printIndex; // Index used for printing out the characters of the directory
+    //int printIndex; // Index used for printing out the characters of the directory
     int correctCharIndex; // Index used for comparing how many characters in fileName match with directory[fileEntry]
     int correctChars; // The number of matching characters when comparing fileName and directory[fileEntry]
 
@@ -160,7 +158,22 @@ void readFile(char* fileName, char* buffer, int* sectorsRead)
             // Seeing if all 6 chars in fileName match with what is in the directory
             if (correctChars == 6)
             {
-                printString("File found.\n\r");
+                // Looks messy but this is a better alternative for testing purposes.
+                // This way we can see this print out when testing the shell
+                printChar('F');
+                printChar('i');
+                printChar('l');
+                printChar('e');
+                printChar(' ');
+                printChar('f');
+                printChar('o');
+                printChar('u');
+                printChar('n');
+                printChar('d');
+                printChar('\r');
+                printChar('\n');
+
+
 
                 // Now that we've found the file, we need to find what sectors the file is on
                 // Starting the index at 6 since the sectors that the file are stored on also start at index 6
@@ -168,6 +181,7 @@ void readFile(char* fileName, char* buffer, int* sectorsRead)
                 {
                     if (directory[fileEntry + sectorIndex] == 0x0)
                     {
+                        // This was a test for readFile in kernel.c but this won't be helpful for shell
                         printString("All sectors found. \n\r");
                         break;
                     }
@@ -181,7 +195,28 @@ void readFile(char* fileName, char* buffer, int* sectorsRead)
             }
         }
     }
+}
 
+void executeProgram(char* name)
+{
+    int index = 0;
+    int numSectorsRead;
+    char buffer[13312];
+
+    printChar('e');
+    printChar('x');
+    printChar('e');
+    printChar('c');
+    printChar('\r');
+    printChar('\n');
+
+    readFile(name, buffer, &numSectorsRead);
+
+    for (index = 0; index < 13312; index++)
+    {
+        putInMemory(0x2000, index, buffer[index]);
+    }
+    launchProgram(0x2000);
 }
 
 void handleInterrupt21(int ax, int bx, int cx, int dx)
@@ -199,6 +234,8 @@ void handleInterrupt21(int ax, int bx, int cx, int dx)
             break;
         case 3:
             readFile(bx, cx, dx);
+        case 4:
+            executeProgram(bx);
         default:
             printString("No interrupt function correlated with AX number");
 
