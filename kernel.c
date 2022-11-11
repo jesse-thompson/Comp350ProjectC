@@ -29,6 +29,8 @@ void main()
     // Creating interrupt21
     makeInterrupt21();
 
+    handleInterrupt21(4, "shell", 0, 0);
+
     // Testing readFile as a function
     //readFile(fileName, fileBuffer, &sectorsRead); // Just a test of the function
 
@@ -45,7 +47,7 @@ void main()
 //    }
 
     // Testing executeProgram as an interrupt
-    handleInterrupt21(4, "tstpr1", 0, 0);
+    //handleInterrupt21(4, "tstpr1", 0, 0);
 
     // Testing terminate by executing tstpr2
     //handleInterrupt21(4, "tstpr2", 0, 0);
@@ -228,24 +230,16 @@ void executeProgram(char* name)
 
 void terminate()
 {
-    printChar('T');
-    printChar('e');
-    printChar('r');
-    printChar('m');
-    printChar('i');
-    printChar('n');
-    printChar('a');
-    printChar('t');
-    printChar('i');
-    printChar('n');
-    printChar('g');
-    printChar('.');
-    printChar('.');
-    printChar('.');
-    printChar('\r');
-    printChar('\n');
+    char shellName[6];
 
-    while(1){}
+    shellName[0] = 's';
+    shellName[1] = 'h';
+    shellName[2] = 'e';
+    shellName[3] = 'l';
+    shellName[4] = 'l';
+    shellName[5] = '\0';
+
+    executeProgram(shellName);
 }
 
 void handleInterrupt21(int ax, int bx, int cx, int dx)
