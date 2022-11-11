@@ -24,9 +24,6 @@ void main()
     char fileBuffer [13312];
     char* fileName = "messag";
     int sectorsRead;
-    readFile(fileName, fileBuffer, &sectorsRead); // Just a test of the function
-    printString("Attempting to print fileBuffer: \n\r");
-    printString(fileBuffer);
 
     // Creating interrupt21
     makeInterrupt21();
@@ -221,7 +218,6 @@ void executeProgram(char* name)
     }
     launchProgram(0x2000);
 }
-
 
 void handleInterrupt21(int ax, int bx, int cx, int dx)
 {
