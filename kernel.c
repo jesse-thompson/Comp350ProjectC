@@ -26,10 +26,14 @@ void main()
     char* fileName = "messag";
     int sectorsRead;
 
-    // Creating interrupt21
+    // These two functions are for steps 4-6
     makeInterrupt21();
 
     handleInterrupt21(4, "shell", 0, 0);
+
+
+
+    // The following code block was for testing functions for steps 1-3
 
     // Testing readFile as a function
     //readFile(fileName, fileBuffer, &sectorsRead); // Just a test of the function
@@ -47,7 +51,7 @@ void main()
 //    }
 
     // Testing executeProgram as an interrupt
-    //handleInterrupt21(4, "tstpr1", 0, 0);
+    //handleInterrupt21(4, "tstp", 0, 0);
 
     // Testing terminate by executing tstpr2
     //handleInterrupt21(4, "tstpr2", 0, 0);
@@ -221,11 +225,18 @@ void executeProgram(char* name)
 
     readFile(name, buffer, &numSectorsRead);
 
-    for (index = 0; index < 13312; index++)
+    if (numSectorsRead > 0)
     {
-        putInMemory(0x2000, index, buffer[index]);
+
+        for (index = 0; index < 13312; index++) {
+            putInMemory(0x2000, index, buffer[index]);
+        }
+        launchProgram(0x2000);
     }
-    launchProgram(0x2000);
+    else
+    {
+        printString("Error: File not found");
+    }
 }
 
 void terminate()

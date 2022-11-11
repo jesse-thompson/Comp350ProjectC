@@ -8,16 +8,50 @@ void main()
     while (1)
     {
         char commandInput[80];
+        char fileBuffer[13312];
+        int bufferIndex;
+        int sectorsRead;
+
+        char* fileName;
+        int commandIndex;
+
+        // Initializing variables for repeated use of type commands
+        sectorsRead = 0;
+        fileName = "";
+        for (bufferIndex = 0; bufferIndex < 13312; bufferIndex++)
+        {
+            fileBuffer[bufferIndex] = '\0';
+        }
 
         syscall(0, "SHELL> ",0,0);
         syscall(1, commandInput,0,0);
 
         // checking if the user wants to use the type command
         // this if statement is a little scuffed, but it'll work
-        if (commandInput[0] == 't' && commandInput[1] == 'y' && commandInput[2] == 'p' && commandInput[3] == 'e')
+        if (commandInput[0] == 't' && commandInput[1] == 'y' && commandInput[2] == 'p' && commandInput[3] == 'e' && commandInput[4] == ' ')
         {
-            syscall(0, "You want to type out a file");
+
+
+            syscall(3, fileName, fileBuffer, &sectorsRead);
+            if (sectorsRead > 0)
+            {
+                syscall(0, fileBuffer, 0, 0);
+            }
+            else
+            {
+                syscall(0, "Error: File not found", 0, 0);
+            }
+
         }
+
+        // checking if the user wants to execute a program
+        // Again, it's a bit scuffed here
+        else if (commandInput[0] == 'e' && commandInput[1] == 'x' && commandInput[2] == 'e' && commandInput[3] == 'c' && commandInput[4] == ' ')
+        {
+            syscall(4, "tstpr2", 0, 0);
+
+        }
+
         else
         {
             syscall(0, "Error: not a valid command.");
