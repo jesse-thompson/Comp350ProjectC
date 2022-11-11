@@ -239,6 +239,8 @@ void terminate()
     printChar('.');
     printChar('\r');
     printChar('\n');
+
+    while(1){}
 }
 
 void handleInterrupt21(int ax, int bx, int cx, int dx)
