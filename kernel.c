@@ -9,6 +9,7 @@ void printString(char*);
 void readString(char*);
 void readSector(char*, int);
 void readFile(char*, char*, int*);
+void executeProgram(char* name);
 void handleInterrupt21(int,int,int,int);
 
 void main()
@@ -28,17 +29,24 @@ void main()
     printString(fileBuffer);
 
     // Creating interrupt21
-    makeInterrupt21(); // My project B did not give me this error for makeInterrupt21()
+    makeInterrupt21();
 
-    interrupt(0x21, "shell");
+    //readFile(fileName, fileBuffer, &sectorsRead); // Just a test of the function
 
-    //Project B
-    // Calling readString
-    //interrupt(0x21, 0, "Enter in some text: \0", 0, 0);
-    // Calling printString
-    //interrupt(0x21, 1, line, 0, 0);
-    // Calling readSector
-    //interrupt(0x21, 2, sectorBuffer, 30, 0);
+    //handleInterrupt21(3, "messag", fileBuffer, &sectorsRead);
+
+//    if (sectorsRead > 0)
+//    {
+//        printString(fileBuffer);
+//    }
+//    else
+//    {
+//        printString("Error: File not found\n\r");
+//    }
+
+    handleInterrupt21(4, "testpr1", 0, 0);
+
+
 
     while(1);
 }
@@ -100,30 +108,42 @@ void readSector(char* buffer, int sector)
 // 1. Read the directory using readSector(place to put it, what sector you want to read);
 // 2. Step through directory, one line at a time, and compare the lines to the file name
 
-void readFile(char* fileName, char* buffer, int sectorsRead)
+void readFile(char* fileName, char* buffer, int* sectorsRead)
 {
-    int printIndex; // Index used for printing out the characters of the directory
+    //int printIndex; // Index used for printing out the characters of the directory
     int correctCharIndex; // Index used for comparing how many characters in fileName match with directory[fileEntry]
     int correctChars; // The number of matching characters when comparing fileName and directory[fileEntry]
 
-    int *fileSector; // This variable is used to check what sectors a file is located in
     int sectorIndex; // Index used for reading what sectors a file is stored on
 
-    char *directoryChar;
+    // The following variables are used for padding out characters in fileName
+    int i;
+    int pad;
 
-    int fileEntry;
+    int fileEntry; // fileEntry acts as an index for accessing the data inside the directory
     char directory[512];
 
     readSector(directory,2); // Directory is at sector 2
 
-    // printing out the contents of directory, just to see what's currently in there
-    printString("Printing directory: \n\r");
-    for (printIndex = 0; printIndex < 512; printIndex++)
+    // Padding out fileName with 0's
+    pad = 0; // Pad is false
+    for (i = 0; i < 6; ++i)
     {
-        *directoryChar = directory[printIndex];
-        printChar(*directoryChar);
+        if (fileName[i] == '\r' || fileName[i] == '\n')
+        {
+            pad = 1;
+        }
+        if (pad == 1)
+            fileName[i] = '\0';
     }
-    printString("\n\r\0");
+
+    // printing out the contents of directory, just to see what's currently in there
+//    printString("Printing directory: \n\r");
+//    for (printIndex = 0; printIndex < 512; printIndex++)
+//    {
+//        printChar(directory[printIndex]);
+//    }
+//    printString("\n\r");
 
 
     for (fileEntry = 0; fileEntry < 512; fileEntry += 32)
@@ -133,21 +153,38 @@ void readFile(char* fileName, char* buffer, int sectorsRead)
         // fileName has to match identically with the first 6 entries of file stored in the directory
         for (correctCharIndex = 0; correctCharIndex < 6; correctCharIndex++)
         {
-            *directoryChar = directory[fileEntry + correctCharIndex];
-            if (fileName[fileEntry + correctCharIndex] == *directoryChar)
+            if (fileName[correctCharIndex] == directory[fileEntry + correctCharIndex])
             {
                 correctChars++;
             }
+
+            // Seeing if all 6 chars in fileName match with what is in the directory
             if (correctChars == 6)
             {
-                printString("File found.\n\r");
+                // Looks messy but this is a better alternative for testing purposes.
+                // This way we can see this print out when testing the shell
+                printChar('F');
+                printChar('i');
+                printChar('l');
+                printChar('e');
+                printChar(' ');
+                printChar('f');
+                printChar('o');
+                printChar('u');
+                printChar('n');
+                printChar('d');
+                printChar('\r');
+                printChar('\n');
 
-                for (sectorIndex = 6; sectorIndex < 28; sectorIndex++)
-                    // 28 is the maximum amount of sectors a file can take up
+
+
+                // Now that we've found the file, we need to find what sectors the file is on
+                // Starting the index at 6 since the sectors that the file are stored on also start at index 6
+                for (sectorIndex = 6; sectorIndex < 32; sectorIndex++)
                 {
-                    *fileSector = directory[fileEntry + sectorIndex];
-                    if (*fileSector == 0x0)
+                    if (directory[fileEntry + sectorIndex] == 0x0)
                     {
+                        // This was a test for readFile in kernel.c but this won't be helpful for shell
                         printString("All sectors found. \n\r");
                         break;
                     }
@@ -155,16 +192,34 @@ void readFile(char* fileName, char* buffer, int sectorsRead)
                     {
                         readSector(buffer, directory[fileEntry + sectorIndex]);
                         buffer += 512;
-//                        *sectorsRead = *sectorsRead + 1; // Currently gives me an illegal indirection error
+                        *sectorsRead = *sectorsRead + 1;
                     }
                 }
             }
         }
     }
+}
 
-    // if no match, *sectorsRead = 0;
-    // The above line means that we loop through the directory and found no matching file name
+void executeProgram(char* name)
+{
+    int index = 0;
+    int numSectorsRead;
+    char buffer[13312];
 
+    printChar('e');
+    printChar('x');
+    printChar('e');
+    printChar('c');
+    printChar('\r');
+    printChar('\n');
+
+    readFile(name, buffer, &numSectorsRead);
+
+    for (index = 0; index < 13312; index++)
+    {
+        putInMemory(0x2000, index, buffer[index]);
+    }
+    launchProgram(0x2000);
 }
 
 void handleInterrupt21(int ax, int bx, int cx, int dx)
@@ -182,6 +237,8 @@ void handleInterrupt21(int ax, int bx, int cx, int dx)
             break;
         case 3:
             readFile(bx, cx, dx);
+        case 4:
+            executeProgram(bx);
         default:
             printString("No interrupt function correlated with AX number");
 
