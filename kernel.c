@@ -31,8 +31,8 @@ void main()
 
     //readFile(fileName, fileBuffer, &sectorsRead); // Just a test of the function
 
-    //handleInterrupt21(3, "messag", fileBuffer, &sectorsRead);
-
+//    handleInterrupt21(3, fileName, fileBuffer, &sectorsRead);
+//
 //    if (sectorsRead > 0)
 //    {
 //        printString(fileBuffer);
@@ -42,8 +42,8 @@ void main()
 //        printString("Error: File not found\n\r");
 //    }
 
-    //handleInterrupt21(4, "tstpr1", 0, 0);
-    handleInterrupt21(4, "tstpr2", 0, 0);
+    handleInterrupt21(4, "tstpr1", 0, 0);
+    //handleInterrupt21(4, "tstpr2", 0, 0);
 
 
 
@@ -258,12 +258,18 @@ void handleInterrupt21(int ax, int bx, int cx, int dx)
             break;
         case 3:
             readFile(bx, cx, dx);
+            break;
         case 4:
             executeProgram(bx);
+            break;
         case 5:
             terminate();
+            break;
         default:
             printString("No interrupt function correlated with AX number");
 
+
     }
+
+
 }
