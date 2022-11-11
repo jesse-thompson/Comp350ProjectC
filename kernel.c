@@ -29,8 +29,10 @@ void main()
     // Creating interrupt21
     makeInterrupt21();
 
+    // Testing readFile as a function
     //readFile(fileName, fileBuffer, &sectorsRead); // Just a test of the function
 
+    // Testing readFIle as an interrupt
 //    handleInterrupt21(3, fileName, fileBuffer, &sectorsRead);
 //
 //    if (sectorsRead > 0)
@@ -42,7 +44,10 @@ void main()
 //        printString("Error: File not found\n\r");
 //    }
 
+    // Testing executeProgram as an interrupt
     handleInterrupt21(4, "tstpr1", 0, 0);
+
+    // Testing terminate by executing tstpr2
     //handleInterrupt21(4, "tstpr2", 0, 0);
 
 
