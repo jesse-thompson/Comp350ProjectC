@@ -5,3 +5,7 @@
 *.jar
 *.doc
 kernel
+bootload
+shell
+tstpr1
+tstpr2
