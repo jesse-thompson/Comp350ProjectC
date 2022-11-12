@@ -26,7 +26,9 @@ void main()
             fileBuffer[bufferIndex] = '\0';
         }
 
+        // calls handleInterrupt21() case 0: printString()
         syscall(0, "SHELL> ",0,0);
+        // calls handleInterrupt21() case 1: readString()
         syscall(1, commandInput,0,0);
 
         // commandInput[5] through commandInput[10] is the fileName
@@ -38,15 +40,21 @@ void main()
 
         // checking if the user wants to use the type command
         // this if statement is a little scuffed, but it'll work
-        if (commandInput[0] == 't' && commandInput[1] == 'y' && commandInput[2] == 'p' && commandInput[3] == 'e' && commandInput[4] == ' ')
+        if (commandInput[0] == 't' &&
+            commandInput[1] == 'y' &&
+            commandInput[2] == 'p' &&
+            commandInput[3] == 'e' &&
+            commandInput[4] == ' ')
         {
             syscall(3, fileName, fileBuffer, &sectorsRead);
-            if (sectorsRead > 0)
+            if (sectorsRead > 0) //if 0, file was not found and no sectors were read
             {
+                // calls handleInterrupt21() case 0: printString()
                 syscall(0, fileBuffer, 0, 0);
             }
             else
             {
+                // calls handleInterrupt21() case 0: printString()
                 syscall(0, "Error: File not found", 0, 0);
             }
 
@@ -54,18 +62,25 @@ void main()
 
         // checking if the user wants to execute a program
         // Again, it's a bit scuffed here
-        else if (commandInput[0] == 'e' && commandInput[1] == 'x' && commandInput[2] == 'e' && commandInput[3] == 'c' && commandInput[4] == ' ')
+        else if (commandInput[0] == 'e' &&
+                 commandInput[1] == 'x' &&
+                 commandInput[2] == 'e' &&
+                 commandInput[3] == 'c' &&
+                 commandInput[4] == ' ')
         {
+            // calls handleInterrupt21() case 4: executeProgram()
             syscall(4, fileName, 0, 0);
         }
 
         else
         {
+            // calls handleInterrupt21() case 0: printString()
             syscall(0, "Error: not a valid command.");
         }
 
         //Choose command to run
 
+        // calls handleInterrupt21() case 0: printString()
         syscall(0, "\r\n");
     }
 }

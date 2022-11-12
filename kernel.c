@@ -216,7 +216,7 @@ void readFile(char* fileName, char* buffer, int* sectorsRead)
 void executeProgram(char* name)
 {
     int index = 0;
-    int numSectorsRead;
+    int numSectorsRead = 0;
     char buffer[13312];
 
     printChar('e');
@@ -238,7 +238,22 @@ void executeProgram(char* name)
     }
     else
     {
-        printString("Error: File not found");
+        printChar('B');
+        printChar('a');
+        printChar('d');
+        printChar(' ');
+        printChar('a');
+        printChar('r');
+        printChar('g');
+        printChar('u');
+        printChar('m');
+        printChar('e');
+        printChar('n');
+        printChar('t');
+        printChar('\r');
+        printChar('\n');
+
+        terminate();
     }
 }
 
