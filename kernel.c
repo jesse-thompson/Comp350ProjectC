@@ -1,7 +1,10 @@
-// Craig Kimball 11/2/22
-// TJ
-// Jesse
-// Sean
+// COMP350-001
+// ProjectC
+// 11/11/22
+// Craig Kimball
+// TJ Bourget
+// Jesse Thompson
+// Sean Tammelleo
 
 
 void printChar(char);

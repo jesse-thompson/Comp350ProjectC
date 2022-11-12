@@ -1,5 +1,8 @@
-//Jesse Thompson
 // Craig Kimball
+// TJ Bourget
+// Jesse Thompson
+// Sean Tammelleo
+
 
 void takeCommand(char* command);
 
